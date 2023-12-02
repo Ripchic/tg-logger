@@ -1,13 +1,12 @@
-from tg_logger import TelegramBot
-from utils import TelegramTqdm
 from time import sleep
-import asyncio
+from tg_logger import TelegramBot
+from utils import TGTqdm
 
-TOKEN = ""
-CHATID = 0
-bot = TelegramBot(TOKEN, CHATID)
-pb = TelegramTqdm(bot)
-# asyncio.run(TelegramBot.main(bot))
+token = ""
+chat_id =
 
-for i in pb(range(20)):
-    sleep(1)
+bot = TelegramBot(token, chat_id)
+TGTqdm = TGTqdm(bot, True)
+
+for _ in TGTqdm(range(3)):
+    sleep(2)
