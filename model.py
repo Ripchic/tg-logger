@@ -1,43 +1,21 @@
 import time
 from datetime import timedelta
 import matplotlib.pyplot as plt
-import numpy as np
-from .bot import TelegramBot
-from .utils import TelegramTqdm
-
-# try:
+from tg_logger import TelegramBot
+from utils import TGTqdm
 import keras
-# except:
-#     from tensorflow import keras
 
 
 class KerasTelegramCallback(keras.callbacks.Callback):
-    """
-    This class allows to send through a Telegram Bot updates about your training.
-    """
-
     def __init__(self, bot: TelegramBot, epoch_bar: bool = True, to_plot: list = []):
-        """
-        Constructor
 
-        Arguments:
-            bot: TelegramBot object
-
-            epoch_bar: True to receive the current epoch progress bar
-
-            to_plot: list of dict contaings plot details (e.g. metric to plots and style)
-                ```python
-                {
-                    'metrics': ['acc', 'val_acc'],
-                    'title':'Accuracy plot',
-                    'ylabel':'acc',
-                    'ylim':(0, 1),
-                    'xlim':(1, n_epochs)
-                }
-                ```
-
-        """
-
+        self.obj = None
+        self.msg = None
+        self.current_epoch = None
+        self.history = None
+        self.n_steps = None
+        self.metrics = None
+        self.n_epochs = None
         self.bot = bot
         self.name = str(int(time.time()))+'.png'
         self.epoch_bar = epoch_bar
@@ -64,16 +42,16 @@ class KerasTelegramCallback(keras.callbacks.Callback):
 
         self.current_epoch = 0
 
-        fields = ['Status', 'Epoch']
-        units = ['', '']
-        values = ['TRAINING', str(self.current_epoch)+'/'+str(self.n_epochs)]
+        # fields = ['Status', 'Epoch']
+        # units = ['', '']
+        # values = ['TRAINING', str(self.current_epoch)+'/'+str(self.n_epochs)]
 
-        self.msg = self.bot.send_structured_text(fields, values, units)
+        # self.msg = self.bot.send_structured_text(fields, values, units)
 
     def on_batch_begin(self, batch, logs={}):
         if self.epoch_bar:
             if self.pbar is None:
-                self.obj = TelegramTqdm(self.bot)
+                self.obj = TGTqdm(self.bot)
                 self.pbar = self.obj(total=self.n_steps)
 
     def on_batch_end(self, batch, logs={}):
@@ -89,11 +67,11 @@ class KerasTelegramCallback(keras.callbacks.Callback):
     def on_epoch_end(self, batch, logs={}):
         self.current_epoch += 1
 
-        fields = ['Status', 'Epoch']
-        units = ['', '']
-        values = ['TRAINING', str(self.current_epoch)+'/'+str(self.n_epochs)]
+        # fields = ['Status', 'Epoch']
+        # units = ['', '']
+        # values = ['TRAINING', str(self.current_epoch)+'/'+str(self.n_epochs)]
 
-        self.bot.update_structured_text(self.msg, fields, values, units)
+        # self.bot.update_structured_text(self.msg, fields, values, units)
 
         for m in self.metrics:
             self.history[m].append(logs[m])
