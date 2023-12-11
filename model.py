@@ -80,12 +80,12 @@ class KerasTelegramCallback(keras.callbacks.Callback):
             self.plot_id[plot_par['id']] = self.plot(
                 plot_par, self.plot_id[plot_par['id']])
 
-    def on_train_end(self, logs={}):
-        fields = ['Status']
-        units = ['']
-        values = ['TRAINING END']
+    # def on_train_end(self, logs={}):
+    #     fields = ['Status']
+    #     units = ['']
+    #     values = ['TRAINING END']
 
-        self.bot.update_structured_text(self.msg, fields, values, units)
+        # self.bot.update_structured_text(self.msg, fields, values, units)
 
     def plot(self, params: dict,
              plot_id=None):

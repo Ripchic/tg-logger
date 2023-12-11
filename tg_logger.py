@@ -2,6 +2,7 @@ import os
 import shutil
 import time
 import telebot
+from telebot import types
 import logging
 
 
@@ -14,6 +15,10 @@ class TelegramBot:
         self.tmp_dir = './temp/'
 
         # telebot.logger.setLevel(logging.DEBUG)
+
+    # @self.bot.message_handler(commands=['start'])
+    # def start_message(self, message):
+    #     return self.bot.send_message(message.chat.id, 'Привет')
 
     def send_message(self, text):
         return self.bot.send_message(self.chat_id, text)
@@ -49,9 +54,9 @@ class TelegramBot:
             img_path = self.tmp_dir+name
 
         plt.savefig(img_path, dpi=100)
-        new_media = self.bot.InputMediaPhoto(open(img_path, 'rb'))
         try:
-            message.edit_media(new_media)
+            self.bot.edit_message_media(message_id=message.id, chat_id=self.chat_id,
+                                        media=types.InputMediaPhoto(open(img_path, 'rb')))
         except Exception as e:
             pass
 
