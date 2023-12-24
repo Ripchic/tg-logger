@@ -22,8 +22,6 @@ def example_model(token, user_id, n_epochs=5):
                   optimizer=RMSprop(),
                   metrics=['accuracy'])
 
-    token = token
-    user_id = user_id
     bot = TelegramBot(token, user_id)
 
     tl = KerasTelegramCallback(bot, epoch_bar=True, to_plot=[
