@@ -1,3 +1,5 @@
+import json
+
 import matplotlib.pyplot as plt
 from tg_logger import TelegramBot
 from utils import TGTqdm
@@ -90,6 +92,15 @@ class KerasTelegramCallback(keras.callbacks.Callback):
         values = ['TRAINING END']
         self.bot.update_structured_text(self.msg, fields, values, units,
                                         force=True if self.current_epoch == self.n_epochs else False)
+        # print(self.history)
+        json_object = json.dumps(self.history, indent=4)
+        with open("temp/log.json", "w") as outfile:
+            outfile.write(json_object)
+        self.bot.send_json()
+        json_string = json.dumps(self.history)
+        with open('temp/log.txt', 'w') as file:
+            file.write(json_string)
+        self.bot.send_txt()
         self.bot.clean_tmp_dir()
 
     def plot(self, params: dict, plot_id=None, force: bool = False):
