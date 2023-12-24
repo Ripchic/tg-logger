@@ -8,39 +8,39 @@ import os
 from keras_cb import KerasTelegramCallback
 from tg_logger import TelegramBot
 
-X = np.random.rand(1000, 100)
-y = (np.random.rand(1000, 3) > 0.5)
 
-model = Sequential()
-model.add(Dense(512, activation='relu', input_shape=(100,)))
-model.add(Dense(512, activation='relu'))
-model.add(Dense(3, activation='softmax'))
+def keras_example(token, user_id, n_epochs=10):
+    x = np.random.rand(1000, 100)
+    y = (np.random.rand(1000, 3) > 0.5)
 
-model.compile(loss='categorical_crossentropy',
-              optimizer=RMSprop(),
-              metrics=['accuracy'])
+    model = Sequential()
+    model.add(Dense(512, activation='relu', input_shape=(100,)))
+    model.add(Dense(512, activation='relu'))
+    model.add(Dense(3, activation='softmax'))
 
-n_epochs = 30
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=RMSprop(),
+                  metrics=['accuracy'])
 
-token = os.getenv('TOKEN')
-user_id = os.getenv('CHAT_ID')
-bot = TelegramBot(token, user_id)
+    token = token
+    user_id = user_id
+    bot = TelegramBot(token, user_id)
 
-tl = KerasTelegramCallback(bot, epoch_bar=True, to_plot=[
-    {
-        'metrics': ['loss', 'val_loss']
-    },
-    {
-        'metrics': ['accuracy', 'val_accuracy'],
-        'title': 'Accuracy plot',
-        'ylabel': 'accuracy',
-        'ylim': (0, 1),
-        'xlim': (1, n_epochs)
-    }
-])
+    tl = KerasTelegramCallback(bot, epoch_bar=True, to_plot=[
+        {
+            'metrics': ['loss', 'val_loss']
+        },
+        {
+            'metrics': ['accuracy', 'val_accuracy'],
+            'title': 'Accuracy plot',
+            'ylabel': 'accuracy',
+            'ylim': (0, 1),
+            'xlim': (1, n_epochs)
+        }
+    ])
 
-history = model.fit(X, y,
-                    batch_size=5,
-                    epochs=n_epochs,
-                    validation_split=0.15,
-                    callbacks=[tl])
+    history = model.fit(x, y,
+                        batch_size=10,
+                        epochs=n_epochs,
+                        validation_split=0.15,
+                        callbacks=[tl])
