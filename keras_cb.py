@@ -1,28 +1,30 @@
-import time
-from datetime import timedelta
 import matplotlib.pyplot as plt
 from tg_logger import TelegramBot
 from utils import TGTqdm
-import keras
+
+try:
+    import keras
+except ImportError:
+    from tensorflow import keras
 
 
 class KerasTelegramCallback(keras.callbacks.Callback):
     def __init__(self, bot: TelegramBot, epoch_bar: bool = True, to_plot: list = []):
-
-        self.obj = None
-        self.msg = None
-        self.current_epoch = None
-        self.history = None
-        self.n_steps = None
-        self.metrics = None
-        self.n_epochs = None
+        super(KerasTelegramCallback, self).__init__()
         self.bot = bot
-        self.name = str(int(time.time()))+'.png'
         self.epoch_bar = epoch_bar
-        if self.epoch_bar:
-            self.pbar = None
         self.to_plot = to_plot
         self.plot_id = {}
+        self.name = 'Training'
+        self.obj = None
+        self.pbar = None
+        self.metrics = None
+        self.n_epochs = None
+        self.n_steps = None
+        self.history = None
+        self.current_epoch = None
+        self.batch_size = None
+        self.samples = None
 
         for i in range(len(self.to_plot)):
             p = self.to_plot[i]
@@ -30,11 +32,20 @@ class KerasTelegramCallback(keras.callbacks.Callback):
             self.plot_id[p['id']] = None
 
     def on_train_begin(self, logs={}):
-        self.n_epochs = self.params['epochs']
-        self.metrics = self.params['metrics']
+        if 'metrics' not in self.params:
+            self.params['metrics'] = []
+            for plot_config in self.to_plot:
+                if 'metrics' in plot_config:
+                    self.params['metrics'].extend(plot_config['metrics'])
 
-        self.n_steps = self.params['samples']//self.params['batch_size']
-        self.n_steps += 1 if self.params['samples'] % self.params['batch_size'] != 0 else 0
+        self.metrics = self.params['metrics']
+        self.n_epochs = self.params['epochs']
+
+        self.samples = self.params['steps']
+        self.batch_size = self.params.get('batch_size', 10)
+
+        self.n_steps = self.samples // self.batch_size
+        self.n_steps += 1 if self.samples % self.batch_size != 0 else 0
 
         self.history = {}
         for metric in self.metrics:
@@ -42,11 +53,11 @@ class KerasTelegramCallback(keras.callbacks.Callback):
 
         self.current_epoch = 0
 
-        # fields = ['Status', 'Epoch']
-        # units = ['', '']
-        # values = ['TRAINING', str(self.current_epoch)+'/'+str(self.n_epochs)]
+        fields = ['Status', 'Epoch']
+        units = ['', '']
+        values = ['TRAINING', f"{self.current_epoch}/{self.n_epochs}"]
 
-        # self.msg = self.bot.send_structured_text(fields, values, units)
+        self.msg = self.bot.send_structured_text(fields, values, units)
 
     def on_batch_begin(self, batch, logs={}):
         if self.epoch_bar:
@@ -59,19 +70,19 @@ class KerasTelegramCallback(keras.callbacks.Callback):
             message = ''
             for m in self.metrics:
                 if 'val_' not in m:
-                    message += m+(': %.4f - ' % logs[m])
+                    message += f"{m}: {logs[m]:.4f} - "
 
             self.pbar.set_description(message[:-3])
             self.pbar.update(1)
 
-    def on_epoch_end(self, batch, logs={}):
+    def on_epoch_end(self, epoch, logs=None):
         self.current_epoch += 1
 
-        # fields = ['Status', 'Epoch']
-        # units = ['', '']
-        # values = ['TRAINING', str(self.current_epoch)+'/'+str(self.n_epochs)]
+        fields = ['Status', 'Epoch']
+        units = ['', '']
+        values = ['TRAINING', f"{self.current_epoch}/{self.n_epochs}"]
 
-        # self.bot.update_structured_text(self.msg, fields, values, units)
+        self.bot.update_structured_text(self.msg, fields, values, units)
 
         for m in self.metrics:
             self.history[m].append(logs[m])
@@ -80,16 +91,17 @@ class KerasTelegramCallback(keras.callbacks.Callback):
             self.plot_id[plot_par['id']] = self.plot(
                 plot_par, self.plot_id[plot_par['id']])
 
-    # def on_train_end(self, logs={}):
-    #     fields = ['Status']
-    #     units = ['']
-    #     values = ['TRAINING END']
+        if self.epoch_bar:
+            self.pbar.reset()
 
-        # self.bot.update_structured_text(self.msg, fields, values, units)
+    def on_train_end(self, logs=None):
+        fields = ['Status']
+        units = ['']
+        values = ['TRAINING END']
+        self.bot.update_structured_text(self.msg, fields, values, units)
+        self.bot.clean_tmp_dir()
 
-    def plot(self, params: dict,
-             plot_id=None):
-
+    def plot(self, params: dict, plot_id=None):
         metrics = params['metrics']
         title = params.get('title', 'Loss')
         ylabel = params.get('ylabel', 'loss')
@@ -97,7 +109,7 @@ class KerasTelegramCallback(keras.callbacks.Callback):
         xlim = params.get('xlim', None)
         ylim = params.get('ylim', None)
 
-        t = [k+1 for k in range(len(self.history[metrics[0]]))]
+        t = [k + 1 for k in range(len(self.history[metrics[0]]))]
 
         for m in metrics:
             plt.plot(t, self.history[m])
