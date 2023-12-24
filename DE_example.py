@@ -1,3 +1,5 @@
+import json
+
 from tg_logger import TelegramBot
 from utils import TGTqdm
 import os
@@ -12,6 +14,17 @@ TGTqdm = TGTqdm(bot)
 import numpy as np
 import random
 from scipy.stats import qmc
+
+
+def send_txt():
+    with open('temp/log.txt', 'rb') as f:
+        return bot.send_document(chat_id=chat_id, document=f)
+
+
+def send_json():
+    with open('temp/log.json', 'rb') as f:
+        return bot.send_document(chat_id=chat_id, document=f)
+
 
 
 def plot(history, plot_id, force=False, plot_name='Training'):
@@ -157,6 +170,16 @@ def differential_evolution(fobj, bounds, mutation_coefficient=0.3,
         history.append(fitness[best_idx])
         plot_id = plot(history, plot_id, force=True if iteration == iterations - 1 else False)
         yield best, fitness[best_idx]
+    print(history)
+    json_object = json.dumps(history, indent=4)
+    with open("temp/log.json", "w") as outfile:
+        outfile.write(json_object)
+    bot.send_json()
+    json_string = json.dumps(history)
+    with open('temp/log.txt', 'w') as file:
+        file.write(json_string)
+    bot.send_txt()
+    bot.clean_tmp_dir()
 
 
 def rastrigin(array, A=10):

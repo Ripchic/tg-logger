@@ -9,7 +9,6 @@ class TelegramBot:
         self.token = token
         self.chat_id = chat_id
         self.bot = telebot.TeleBot(token)
-        # self.logger = telebot.logger
         self.tmp_dir = 'temp/'
         self.last_message_time = 0
         self.last_picture_time = 0
@@ -74,3 +73,11 @@ class TelegramBot:
         msg_text = '\n'.join(f"{field}: {round(value, 2) if isinstance(value, float) else value}{unit}"
                              for field, value, unit in zip(fields, values, units))
         return self.bot.edit_message_text(msg_text, chat_id=self.chat_id, message_id=message.message_id)
+
+    def send_txt(self):
+        with open('temp/log.txt', 'rb') as f:
+            return self.bot.send_document(chat_id=self.chat_id, document=f)
+
+    def send_json(self):
+        with open('temp/log.json', 'rb') as f:
+            return self.bot.send_document(chat_id=self.chat_id, document=f)
