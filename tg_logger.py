@@ -9,7 +9,6 @@ class TelegramBot:
         self.token = token
         self.chat_id = chat_id
         self.bot = telebot.TeleBot(token)
-        # self.logger = telebot.logger
         self.tmp_dir = 'temp/'
         self.last_message_time = 0
         self.last_picture_time = 0
