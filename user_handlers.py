@@ -1,7 +1,7 @@
 from tg_logger import TelegramBot
+import os
 
-token = ""
-
+token = os.getenv('TOKEN')
 bot = TelegramBot(token, None).bot
 
 

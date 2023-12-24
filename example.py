@@ -1,11 +1,11 @@
 import keras
-import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import RMSprop
 import numpy as np
+import os
 
-from model import KerasTelegramCallback
+from keras_cb import KerasTelegramCallback
 from tg_logger import TelegramBot
 
 X = np.random.rand(1000, 100)
@@ -16,15 +16,14 @@ model.add(Dense(512, activation='relu', input_shape=(100,)))
 model.add(Dense(512, activation='relu'))
 model.add(Dense(3, activation='softmax'))
 
-
 model.compile(loss='categorical_crossentropy',
               optimizer=RMSprop(),
               metrics=['accuracy'])
 
-n_epochs = 3
+n_epochs = 5
 
-token = '6519815802:AAG9bufsMqZvFX42rY6_nSccOK0euwkFX2k'
-user_id = 543987419
+token = os.getenv('TOKEN')
+user_id = os.getenv('USER_ID')
 bot = TelegramBot(token, user_id)
 
 tl = KerasTelegramCallback(bot, epoch_bar=True, to_plot=[
@@ -32,11 +31,11 @@ tl = KerasTelegramCallback(bot, epoch_bar=True, to_plot=[
         'metrics': ['loss', 'val_loss']
     },
     {
-        'metrics': ['acc', 'val_acc'],
-        'title':'Accuracy plot',
-        'ylabel':'acc',
-        'ylim':(0, 1),
-        'xlim':(1, n_epochs)
+        'metrics': ['accuracy', 'val_accuracy'],
+        'title': 'Accuracy plot',
+        'ylabel': 'accuracy',
+        'ylim': (0, 1),
+        'xlim': (1, n_epochs)
     }
 ])
 
@@ -45,6 +44,3 @@ history = model.fit(X, y,
                     epochs=n_epochs,
                     validation_split=0.15,
                     callbacks=[tl])
-
-
-# bot.clean_tmp_dir()
