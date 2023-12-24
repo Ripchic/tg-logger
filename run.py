@@ -3,10 +3,10 @@ from tg_logger import TelegramBot
 from utils import TGTqdm
 
 token = ""
-# chat_id =
+chat_id = ""
 
-bot = TelegramBot(token)
+bot = TelegramBot(token, chat_id)
 TGTqdm = TGTqdm(bot, True)
 
-for _ in TGTqdm(range(3)):
-    sleep(2)
+for _ in TGTqdm(range(154//2)):
+    sleep(0.1)
