@@ -1,7 +1,8 @@
 from tg_logger import TelegramBot
 import subprocess
+import os
 
-token = ""
+token = os.getenv('TOKEN')
 
 bot = TelegramBot(token, None).bot
 
@@ -40,7 +41,8 @@ def help(message):
 
 @bot.message_handler(content_types=['text'])
 def text(message):
-    bot.send_message(message.chat.id, f"The Answer to the Ultimate Question of Life, the Universe, and Everything is 42")
+    bot.send_message(message.chat.id, f"I don't understand... But maybe you will be satisfied that the answer to the "
+                                      f"Main question of Life, the Universe and everything else is 42!")
 
 
 bot.polling()
