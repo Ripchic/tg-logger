@@ -9,7 +9,7 @@ from keras_cb import KerasTelegramCallback
 from tg_logger import TelegramBot
 
 
-def example_model(token, user_id, n_epochs=5):
+def keras_example(token, user_id, n_epochs=10):
     x = np.random.rand(1000, 100)
     y = (np.random.rand(1000, 3) > 0.5)
 
@@ -42,4 +42,3 @@ def example_model(token, user_id, n_epochs=5):
                         epochs=n_epochs,
                         validation_split=0.15,
                         callbacks=[tl])
-

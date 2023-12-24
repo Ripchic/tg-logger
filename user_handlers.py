@@ -1,5 +1,5 @@
 from tg_logger import TelegramBot
-from example import example_model
+from keras_example import keras_example
 import os
 
 token = os.getenv('TOKEN')
@@ -28,8 +28,7 @@ def chat_id(message):
 @bot.message_handler(commands=['running_the_model'])
 def running_the_model(message):
     bot.send_message(message.chat.id, f"<i>~Starting model training...</i>", parse_mode='HTML')
-
-    example_model(token=token, user_id=os.getenv('CHAT_ID'))
+    keras_example(token=token, user_id=os.getenv('CHAT_ID'), n_epochs=15)
 
 
 @bot.message_handler(commands=['help'])

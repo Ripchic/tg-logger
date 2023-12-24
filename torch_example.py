@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import os
 
-from torch_cb import PyTorchTelegramCallback
+from pytorch_cb import PyTorchTelegramCallback
 from tg_logger import TelegramBot
 
 X = np.random.rand(1000, 100).astype(np.float32)

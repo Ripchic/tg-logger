@@ -26,7 +26,6 @@ def send_json():
         return bot.send_document(chat_id=chat_id, document=f)
 
 
-
 def plot(history, plot_id, force=False, plot_name='Training'):
     if not history:
         return plot_id
@@ -170,7 +169,6 @@ def differential_evolution(fobj, bounds, mutation_coefficient=0.3,
         history.append(fitness[best_idx])
         plot_id = plot(history, plot_id, force=True if iteration == iterations - 1 else False)
         yield best, fitness[best_idx]
-    print(history)
     json_object = json.dumps(history, indent=4)
     with open("temp/log.json", "w") as outfile:
         outfile.write(json_object)
