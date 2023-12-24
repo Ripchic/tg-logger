@@ -1,5 +1,5 @@
 from tg_logger import TelegramBot
-from example import keras_example
+from keras_example import keras_example
 import os
 
 token = os.getenv('TOKEN')
