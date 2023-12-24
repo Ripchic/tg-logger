@@ -9,7 +9,7 @@ from keras_cb import KerasTelegramCallback
 from tg_logger import TelegramBot
 
 X = np.random.rand(1000, 100)
-y = (np.random.rand(1000, 3) > 0.5).astype('float32')
+y = (np.random.rand(1000, 3) > 0.5)
 
 model = Sequential()
 model.add(Dense(512, activation='relu', input_shape=(100,)))
@@ -20,10 +20,10 @@ model.compile(loss='categorical_crossentropy',
               optimizer=RMSprop(),
               metrics=['accuracy'])
 
-n_epochs = 5
+n_epochs = 30
 
 token = os.getenv('TOKEN')
-user_id = os.getenv('USER_ID')
+user_id = os.getenv('CHAT_ID')
 bot = TelegramBot(token, user_id)
 
 tl = KerasTelegramCallback(bot, epoch_bar=True, to_plot=[
@@ -40,7 +40,7 @@ tl = KerasTelegramCallback(bot, epoch_bar=True, to_plot=[
 ])
 
 history = model.fit(X, y,
-                    batch_size=10,
+                    batch_size=5,
                     epochs=n_epochs,
                     validation_split=0.15,
                     callbacks=[tl])

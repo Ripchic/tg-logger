@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 
 class _TelegramIO:
-    def __init__(self, bot: TelegramBot, show_last_update: bool = False):
+    def __init__(self, bot: TelegramBot, show_last_update: bool = True):
         self.bot = bot
         self.show_last_update = show_last_update
         self.text = self.prev_text = "<PB init>"
@@ -20,7 +20,10 @@ class _TelegramIO:
             if '%' in self.text:
                 update_msg = self.text + '\nLast update: {}'.format(
                     datetime.now()) if self.show_last_update else self.text
-                self.bot.update_message(self.message, update_msg)
+                if '100%' in self.text:
+                    self.bot.update_message(self.message, update_msg, force=True)
+                else:
+                    self.bot.update_message(self.message, update_msg)
                 self.prev_text = self.text
 
 
