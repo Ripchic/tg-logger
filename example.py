@@ -11,7 +11,7 @@ from tg_logger import TelegramBot
 
 def example_model(token, user_id, n_epochs=5):
     x = np.random.rand(1000, 100)
-    y = (np.random.rand(1000, 3) > 0.5).astype('float32')
+    y = (np.random.rand(1000, 3) > 0.5)
 
     model = Sequential()
     model.add(Dense(512, activation='relu', input_shape=(100,)))
