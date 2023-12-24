@@ -1,19 +1,14 @@
-import json
-
 import matplotlib.pyplot as plt
 from tg_logger import TelegramBot
 from utils import TGTqdm
-import random
 
-try:
-    import keras
-except ImportError:
-    from tensorflow import keras
+import torch
+from pytorch_lightning.callbacks import Callback
 
 
-class KerasTelegramCallback(keras.callbacks.Callback):
+class TorchCallback(Callback):
     def __init__(self, bot: TelegramBot, epoch_bar: bool = True, to_plot: list = []):
-        super(KerasTelegramCallback, self).__init__()
+        super(Callback, self).__init__()
         self.bot = bot
         self.epoch_bar = epoch_bar
         self.to_plot = to_plot
@@ -23,18 +18,18 @@ class KerasTelegramCallback(keras.callbacks.Callback):
         self.pbar = None
         self.metrics = None
         self.n_epochs = None
+        self.n_steps = None
         self.history = None
         self.current_epoch = None
+        self.batch_size = None
         self.samples = None
-        self.total_steps = None
-        self.msg = None
 
         for i in range(len(self.to_plot)):
             p = self.to_plot[i]
             p['id'] = i
             self.plot_id[p['id']] = None
 
-    def on_train_begin(self, logs={}):
+    def on_train_begin(self, trainer, pl_module):
         if 'metrics' not in self.params:
             self.params['metrics'] = []
             for plot_config in self.to_plot:
@@ -43,24 +38,42 @@ class KerasTelegramCallback(keras.callbacks.Callback):
 
         self.metrics = self.params['metrics']
         self.n_epochs = self.params['epochs']
+
         self.samples = self.params['steps']
+        self.batch_size = self.params.get('batch_size', 10)
+
+        self.n_steps = self.samples // self.batch_size
+        self.n_steps += 1 if self.samples % self.batch_size != 0 else 0
+
         self.history = {}
         for metric in self.metrics:
             self.history[metric] = []
+
         self.current_epoch = 0
-        self.total_steps = self.n_epochs * self.samples
 
         fields = ['Status', 'Epoch']
         units = ['', '']
         values = ['TRAINING', f"{self.current_epoch}/{self.n_epochs}"]
 
         self.msg = self.bot.send_structured_text(fields, values, units)
+
+    def on_batch_begin(self, trainer, pl_module):
         if self.epoch_bar:
             if self.pbar is None:
                 self.obj = TGTqdm(self.bot)
-                self.pbar = self.obj(total=self.total_steps)
+                self.pbar = self.obj(total=self.n_steps)
 
-    def on_epoch_end(self, epoch, logs=None):
+    # def on_batch_end(self, trainer, pl_module, logs={}):
+    #     if self.epoch_bar:
+    #         message = ''
+    #         for m in self.metrics:
+    #             if 'val_' not in m:
+    #                 message += f"{m}: {logs[m]:.4f} - "
+    #
+    #         self.pbar.set_description(message[:-3])
+    #         self.pbar.update(1)
+
+    def on_epoch_end(self, trainer, pl_module, logs=None):
         self.current_epoch += 1
 
         fields = ['Status', 'Epoch']
@@ -69,45 +82,28 @@ class KerasTelegramCallback(keras.callbacks.Callback):
 
         self.bot.update_structured_text(self.msg, fields, values, units)
 
-        for m in self.metrics:
-            self.history[m].append(logs[m])
+        # for m in self.metrics:
+        #     self.history[m].append(logs[m])
 
-        random.shuffle(self.to_plot)
         for plot_par in self.to_plot:
             self.plot_id[plot_par['id']] = self.plot(
-                plot_par, self.plot_id[plot_par['id']], force=True if self.current_epoch == self.n_epochs else False)
+                plot_par, self.plot_id[plot_par['id']])
 
         if self.epoch_bar:
-            message = ''
-            for m in self.metrics:
-                if 'val_' not in m:
-                    message += f"{m}: {logs[m]:.4f} - "
-            if self.epoch_bar:
-                self.pbar.set_description(message[:-3])
-                self.pbar.update(self.samples)
+            self.pbar.reset()
 
-    def on_train_end(self, logs=None):
+    def on_train_end(self, trainer, pl_module, logs=None):
         fields = ['Status']
         units = ['']
         values = ['TRAINING END']
-        self.bot.update_structured_text(self.msg, fields, values, units,
-                                        force=True if self.current_epoch == self.n_epochs else False)
-        # print(self.history)
-        json_object = json.dumps(self.history, indent=4)
-        with open("temp/log.json", "w") as outfile:
-            outfile.write(json_object)
-        self.bot.send_json()
-        json_string = json.dumps(self.history)
-        with open('temp/log.txt', 'w') as file:
-            file.write(json_string)
-        self.bot.send_txt()
+        self.bot.update_structured_text(self.msg, fields, values, units)
         self.bot.clean_tmp_dir()
 
-    def plot(self, params: dict, plot_id=None, force: bool = False):
+    def plot(self, params: dict, plot_id=None):
         metrics = params['metrics']
         title = params.get('title', 'Loss')
-        ylabel = params.get('ylabel', 'Loss')
-        xlabel = params.get('xlabel', 'Epochs')
+        ylabel = params.get('ylabel', 'loss')
+        xlabel = params.get('xlabel', '# Epochs')
         xlim = params.get('xlim', None)
         ylim = params.get('ylim', None)
 
@@ -129,7 +125,7 @@ class KerasTelegramCallback(keras.callbacks.Callback):
         if plot_id is None:
             plot_id = self.bot.send_plot(plt, self.name)
         else:
-            self.bot.update_plot(plot_id, plt, self.name, force=force)
+            self.bot.update_plot(plot_id, plt, self.name)
 
         plt.gcf().clear()
         return plot_id
