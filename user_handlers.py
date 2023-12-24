@@ -41,7 +41,7 @@ def help(message):
 
 @bot.message_handler(content_types=['text'])
 def text(message):
-    bot.send_message(message.chat.id, f"I don't understand... But maybe you will be satisfied that the answer to the "
+    bot.send_message(message.chat.id, f"I don't understand... But maybe you will be satisfied that the Answer to the "
                                       f"Main question of Life, the Universe and everything else is 42!")
 
 
