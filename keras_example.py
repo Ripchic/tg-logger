@@ -20,7 +20,7 @@ def keras_example(token, user_id, n_epochs=10):
 
     model.compile(loss='categorical_crossentropy',
                   optimizer=RMSprop(),
-                  metrics=['accuracy'])
+                  metrics=['accuracy', 'mse'])
 
     bot = TelegramBot(token, user_id)
 

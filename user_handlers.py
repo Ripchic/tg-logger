@@ -1,6 +1,5 @@
 from tg_logger import TelegramBot
 from keras_example import keras_example
-from DE_example import differential_evolution
 from telebot import types
 import os
 
@@ -19,7 +18,7 @@ def start(message):
                                            f"models📝, so let's get started!\n\nFirst of all, you should find out "
                                            f"your /chat_id, which you will specify in the Python🐍 project, "
                                            f"and then you can run the models using the /running_keras_example or "
-                                           f"/running_the_differential_evolution commands.\n\nIf anything, call for "
+                                           f"/running_de commands.\n\nIf anything, call for "
                                            f"/help, and I will immediately rush to your rescue! ⛑")
 
 
@@ -54,7 +53,7 @@ def processing_the_keras_example_model(message, flag=0):
                                            lambda msg: processing_the_keras_example_model(msg, flag + 1))
 
 
-@bot.message_handler(commands=['running_the_differential_evolution'])
+@bot.message_handler(commands=['running_de'])
 def running_the_differential_evolution_model(message):
     differential_evolution_answers.clear()
     markup = types.InlineKeyboardMarkup(row_width=3)
@@ -227,21 +226,21 @@ def processing_the_differential_evolution_model_mutation_settings_answer(call):
 
 @bot.callback_query_handler(func=lambda call: call.data in ["worst", "random_among_worst", "random_selection"])
 def processing_the_differential_evolution_model_selection_settings_answer(call):
+    from DE_example import differential_evolution
     bot.send_message(call.message.chat.id, call.data)
     differential_evolution_answers["selection_setting"] = call.data
     bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None)
     bot.send_message(call.message.chat.id, f"<i>~Starting model training...</i>", parse_mode='HTML')
-    differential_evolution(get_token=token,
-                           get_chat_id=os.getenv('CHAT_ID'),
-                           fobj=differential_evolution_answers["fobj"],
-                           bounds=differential_evolution_answers["bounds"],
-                           mutation_coefficient=differential_evolution_answers["mutation_coefficient"],
-                           crossover_coefficient=differential_evolution_answers["crossover_coefficient"],
-                           population_size=differential_evolution_answers["population_size"],
-                           iterations=differential_evolution_answers["iterations"],
-                           init_setting=differential_evolution_answers["init_setting"],
-                           mutation_setting=differential_evolution_answers["mutation_setting"],
-                           selection_setting=differential_evolution_answers["selection_setting"])
+    res = list(differential_evolution(
+        fobj=differential_evolution_answers["fobj"],
+        bounds=differential_evolution_answers["bounds"],
+        mutation_coefficient=differential_evolution_answers["mutation_coefficient"],
+        crossover_coefficient=differential_evolution_answers["crossover_coefficient"],
+        population_size=differential_evolution_answers["population_size"],
+        iterations=differential_evolution_answers["iterations"],
+        init_setting=differential_evolution_answers["init_setting"],
+        mutation_setting=differential_evolution_answers["mutation_setting"],
+        selection_setting=differential_evolution_answers["selection_setting"]))
 
 
 @bot.message_handler(commands=['help'])

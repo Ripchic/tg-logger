@@ -1,15 +1,14 @@
 import json
-
 from tg_logger import TelegramBot
-from utils import TGTqdm
 import os
 import matplotlib.pyplot as plt
+from utils import TGTqdm
 
-token = None
-chat_id = None
+token = os.getenv('TOKEN')
+chat_id = os.getenv('CHAT_ID')
 
-bot = None
-TGTqdm = None
+bot = TelegramBot(token, chat_id)
+TGTqdm = TGTqdm(bot)
 
 import numpy as np
 import random
@@ -46,20 +45,25 @@ def plot(history, plot_id, force=False, plot_name='Training'):
     return plot_id
 
 
-def differential_evolution(get_token, get_chat_id, fobj, bounds, mutation_coefficient=0.3,
+def rastrigin(array, A=10):
+    return A * 2 + (array[0] ** 2 - A * np.cos(2 * np.pi * array[0])) + (
+            array[1] ** 2 - A * np.cos(2 * np.pi * array[1]))
+
+
+def griewank(array):
+    term_1 = (array[0] ** 2 + array[1] ** 2) / 2
+    term_2 = np.cos(array[0] / np.sqrt(2)) * np.cos(array[1] / np.sqrt(2))
+    return 1 + term_1 - term_2
+
+
+def rosenbrock(array):
+    return (1 - array[0]) ** 2 + 100 * (array[1] - array[0] ** 2) ** 2
+
+
+def differential_evolution(fobj=rosenbrock, bounds=2, mutation_coefficient=0.3,
                            crossover_coefficient=0.5, population_size=500, iterations=50,
                            init_setting='random', mutation_setting='rand1',
                            selection_setting='current', p_min=0.1, p_max=0.2):
-    global token
-    global chat_id
-    global bot
-    global TGTqdm
-
-    token = get_token
-    chat_id = get_chat_id
-    bot = TelegramBot(token, chat_id)
-    TGTqdm = TGTqdm(bot)
-
     # Инициалиация популяции и получение первичных результатов
     SEED = 7
     random.seed(SEED)
@@ -67,6 +71,12 @@ def differential_evolution(get_token, get_chat_id, fobj, bounds, mutation_coeffi
     bounds = np.array(bounds)
     dimensions = len(bounds)
     history = []
+    if fobj == "Rosenbrock":
+        fobj = rosenbrock
+    elif fobj == "Griewank":
+        fobj = griewank
+    elif fobj == "Rastrigin":
+        fobj = rastrigin
     # Случайная инициализация
     if init_setting == 'LatinHypercube':
         # your code
@@ -188,18 +198,3 @@ def differential_evolution(get_token, get_chat_id, fobj, bounds, mutation_coeffi
         file.write(json_string)
     bot.send_txt()
     bot.clean_tmp_dir()
-
-
-def rastrigin(array, A=10):
-    return A * 2 + (array[0] ** 2 - A * np.cos(2 * np.pi * array[0])) + (
-            array[1] ** 2 - A * np.cos(2 * np.pi * array[1]))
-
-
-def griewank(array):
-    term_1 = (array[0] ** 2 + array[1] ** 2) / 2
-    term_2 = np.cos(array[0] / np.sqrt(2)) * np.cos(array[1] / np.sqrt(2))
-    return 1 + term_1 - term_2
-
-
-def rosenbrock(array):
-    return (1 - array[0]) ** 2 + 100 * (array[1] - array[0] ** 2) ** 2
