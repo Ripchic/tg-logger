@@ -1,3 +1,5 @@
+import json
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -58,6 +60,7 @@ tl = PyTorchTelegramCallback(bot, epoch_bar=True, to_plot=[
 
 tl.on_train_begin(n_epochs=n_epochs, n_batches=len(train_loader))
 
+history = []
 for epoch in range(n_epochs):
     running_loss = 0.0
     correct = 0
@@ -80,6 +83,14 @@ for epoch in range(n_epochs):
     epoch_loss = running_loss / len(train_loader)
     epoch_accuracy = correct / total
     logs = {'loss': epoch_loss, 'accuracy': epoch_accuracy}
+    history.append(logs)
     tl.on_epoch_end(logs)
-
+json_object = json.dumps(history, indent=4)
+with open("temp/log.json", "w") as outfile:
+    outfile.write(json_object)
+bot.send_json()
+json_string = json.dumps(history)
+with open('temp/log.txt', 'w') as file:
+    file.write(json_string)
+bot.send_txt()
 tl.on_train_end()
