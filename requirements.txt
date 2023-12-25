@@ -1,8 +1,7 @@
-tqdm>=4.66.1
-matplotlib>=3.8.0
-keras>=2.15.0
-tensorflow>=2.15.0
-numpy>=1.26.0
-scipy>=1.11.3
-torch>=2.1.2
-pyTelegramBotAPI>=4.14.0
+tqdm~=4.66.1
+matplotlib~=3.7.1
+keras~=2.15.0
+tensorflow~=2.15.0
+numpy~=1.23.5
+scipy~=1.11.2
+telebot~=0.0.5

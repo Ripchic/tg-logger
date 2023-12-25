@@ -5,11 +5,11 @@ from utils import TGTqdm
 import os
 import matplotlib.pyplot as plt
 
-token = os.getenv('TOKEN')
-chat_id = os.getenv('CHAT_ID')
+token = None
+chat_id = None
 
-bot = TelegramBot(token, chat_id)
-TGTqdm = TGTqdm(bot)
+bot = None
+TGTqdm = None
 
 import numpy as np
 import random
@@ -46,10 +46,20 @@ def plot(history, plot_id, force=False, plot_name='Training'):
     return plot_id
 
 
-def differential_evolution(fobj, bounds, mutation_coefficient=0.3,
+def differential_evolution(get_token, get_chat_id, fobj, bounds, mutation_coefficient=0.3,
                            crossover_coefficient=0.5, population_size=500, iterations=50,
                            init_setting='random', mutation_setting='rand1',
                            selection_setting='current', p_min=0.1, p_max=0.2):
+    global token
+    global chat_id
+    global bot
+    global TGTqdm
+
+    token = get_token
+    chat_id = get_chat_id
+    bot = TelegramBot(token, chat_id)
+    TGTqdm = TGTqdm(bot)
+
     # Инициалиация популяции и получение первичных результатов
     SEED = 7
     random.seed(SEED)
@@ -193,7 +203,3 @@ def griewank(array):
 
 def rosenbrock(array):
     return (1 - array[0]) ** 2 + 100 * (array[1] - array[0] ** 2) ** 2
-
-
-res = list(differential_evolution(rosenbrock, [[-2, 2], [-2, 2]], init_setting='random', mutation_setting='rand1',
-                                  selection_setting='current'))
