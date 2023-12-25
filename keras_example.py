@@ -36,6 +36,12 @@ def keras_example(token, user_id, n_epochs=10):
             'ylabel': 'accuracy',
             'ylim': (0, 1),
             'xlim': (1, n_epochs)
+        },
+        {
+            'metrics': ['mse', 'val_mse'],
+            'title': 'MSE plot',
+            'ylabel': 'mse',
+            'xlim': (1, n_epochs)
         }
     ])
 
